@@ -4,7 +4,7 @@
             <v-app-bar-title class="text-h2 font-weight-bold text-center text-secondary">BATCH TRACKER</v-app-bar-title>
         </v-app-bar>
         <v-main>
-            <v-container fluid class="pa-0 bg-red h-100">
+            <v-container fluid class="pa-0 h-100">
                 <DepartureRow time="TIME" destination="BATCH" gate="CAM" status="STATUS" />
                 <v-divider thickness="5" class="my-5"></v-divider>
 
