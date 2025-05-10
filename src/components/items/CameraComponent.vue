@@ -1,8 +1,8 @@
 <template>
   <v-sheet class="d-flex justify-center align-center" color="transparent">
     <CharacterSheet
-      v-for="(char, index) in destination.toUpperCase().split('')"
-      :key="'dest-' + index"
+      v-for="(char, index) in camera.toUpperCase().split('')"
+      :key="'gate-' + index"
       :character="char"
       class="text-mono text-cyan ma-1"
     />
@@ -11,8 +11,9 @@
 
 <script setup>
 import CharacterSheet from './CharacterSheet.vue';
+
 defineProps({
-  destination: {
+  camera: {
     type: String,
     required: true,
   },

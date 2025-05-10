@@ -5,10 +5,10 @@
         <TimeComponent :time="time" />
       </v-col>
       <v-col cols="3" class="d-flex justify-center align-center">
-        <DestinationComponent :destination="destination" />
+        <LotNumber :lotNumber="lotNumber" />
       </v-col>
       <v-col cols="2" class="d-flex justify-center align-center">
-        <GateComponent :gate="gate" />
+        <CameraComponent :camera="camera" />
       </v-col>
       <v-col cols="4" class="d-flex justify-center align-center">
         <StatusComponent :status="status" />
@@ -18,8 +18,8 @@
 </template>
 
 <script setup>
-import DestinationComponent from './items/DestinationComponent.vue';
-import GateComponent from './items/GateComponent.vue';
+import LotNumber from './items/LotNumber.vue';
+import CameraComponent from './items/CameraComponent.vue';
 import StatusComponent from './items/StatusComponent.vue';
 import TimeComponent from './items/TimeComponent.vue';
 
@@ -28,11 +28,11 @@ defineProps({
     type: String,
     required: true,
   },
-  destination: {
+  lotNumber: {
     type: String,
     required: true,
   },
-  gate: {
+  camera: {
     type: String,
     required: true,
   },

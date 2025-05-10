@@ -1,8 +1,8 @@
 <template>
   <v-sheet class="d-flex justify-center align-center" color="transparent">
     <CharacterSheet
-      v-for="(char, index) in gate.toUpperCase().split('')"
-      :key="'gate-' + index"
+      v-for="(char, index) in lotNumber.split('').map(c => (/[a-zA-Z]/.test(c) ? c.toUpperCase() : c))"
+      :key="'dest-' + index"
       :character="char"
       class="text-mono text-cyan ma-1"
     />
@@ -13,7 +13,7 @@
 import CharacterSheet from './CharacterSheet.vue';
 
 defineProps({
-  gate: {
+  lotNumber: {
     type: String,
     required: true,
   },

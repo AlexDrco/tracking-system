@@ -1,19 +1,22 @@
-import { app, BrowserWindow } from 'electron';
-import path from 'node:path';
+import { app, BrowserWindow, ipcMain, dialog } from 'electron';
+import { join } from 'node:path';
+import fs, { existsSync } from 'node:fs';
+import { homedir } from 'node:os';
+import { set_fs, readFile, utils } from 'xlsx';
 import started from 'electron-squirrel-startup';
 
-// Handle creating/removing shortcuts on Windows when installing/uninstalling.
+set_fs(fs);
+
 if (started) {
   app.quit();
 }
 
 const createWindow = () => {
-  // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: join(__dirname, 'preload.js'), // __dirname is safe here (main process)
     },
   });
 
@@ -21,21 +24,46 @@ const createWindow = () => {
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
   } else {
-    mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
+    mainWindow.loadFile(join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
   }
 
-  // Open the DevTools.
   mainWindow.webContents.openDevTools();
 };
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
+// IPC handler to open file dialog and read Excel
+ipcMain.handle('read-excel', async () => {
+  try {
+    const downloadsPath = join(homedir(), 'Downloads');
+    const filePath = join(downloadsPath, 'file.xlsx');
+
+    if (!existsSync(filePath)) {
+      return { success: false, error: 'File "file.xlsx" not found in Downloads folder' };
+    }
+
+    const workbook = readFile(filePath);
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+
+    // Read only first 4 columns, skip header, treat null as empty, limit to 24 rows
+    const data = utils.sheet_to_json(sheet, {
+      header: ['time', 'lot_number', 'camera', 'status'],
+      range: 1, // Skip first row (header)
+      defval: '' // Replace null/undefined with empty string
+    }).map(row => ({
+      time: row.time,
+      lot_number: row.lot_number,
+      camera: row.camera,
+      status: row.status
+    })).slice(0, 24); // Limit to 24 rows
+
+    return { success: true, data };
+  } catch (error) {
+    return { success: false, error: `Error reading file: ${error.message}` };
+  }
+});
+
 app.whenReady().then(() => {
   createWindow();
-
-  // On OS X it's common to re-create a window in the app when the
-  // dock icon is clicked and there are no other windows open.
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow();
@@ -43,14 +71,8 @@ app.whenReady().then(() => {
   });
 });
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
   }
 });
-
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and import them here.
