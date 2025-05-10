@@ -1,20 +1,18 @@
 <template>
-  <v-card color="transparent" variant="flat">
-    <v-row no-gutters>
+    <v-row>
       <v-col cols="3" class="d-flex justify-center align-center">
         <TimeComponent :time="time" />
       </v-col>
       <v-col cols="3" class="d-flex justify-center align-center">
         <LotNumber :lotNumber="lotNumber" />
       </v-col>
-      <v-col cols="2" class="d-flex justify-center align-center">
+      <v-col cols="3" class="d-flex justify-center align-center">
         <CameraComponent :camera="camera" />
       </v-col>
-      <v-col cols="4" class="d-flex justify-center align-center">
+      <v-col cols="3" class="d-flex justify-center align-center">
         <StatusComponent :status="status" />
       </v-col>
     </v-row>
-  </v-card>
 </template>
 
 <script setup>

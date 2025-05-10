@@ -1,29 +1,19 @@
 <template>
   <v-app>
-    <v-app-bar>
+    <v-app-bar elevation="0">
       <v-app-bar-title class="text-h2 font-weight-bold text-center text-secondary">CWS BATCH TRACKER</v-app-bar-title>
     </v-app-bar>
-    <v-main>
-      <v-container fluid class="pa-0 h-100">
-        <DepartureRow time="TIME" lotNumber="LOT NUM" camera="CAM" status="STATUS" />
-        <v-divider thickness="5" class="my-5"></v-divider>
-        <DepartureRow
-          v-for="(item, index) in excelData"
-          :key="index"
-          :time="item.time"
-          :lotNumber="item.lot_number"
-          :camera="item.camera"
-          :status="item.status"
-        ></DepartureRow>
-      </v-container>
+    <v-main class="h-100">
+      <VerticalCaroussel :excel-data="excelData" />
     </v-main>
   </v-app>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import CarousselComponent from './components/CarousselComponent.vue';
+import VerticalCaroussel from './components/VerticalCaroussel.vue';
 import DepartureRow from './components/DepartureRow.vue';
+
 
 const excelData = ref([]);
 
@@ -32,7 +22,7 @@ const readExcel = async () => {
   try {
     const result = await window.electronAPI.readExcel();
     if (result.success) {
-      excelData.value = result.data;
+      excelData.value = result.data.sort((a, b) => new Date(a.time) - new Date(b.time)); // Sort by time
     } else {
       console.error('Error:', result.error);
     }
@@ -41,13 +31,12 @@ const readExcel = async () => {
   }
 };
 
+// Read Excel and update periodically
 onMounted(() => {
-  // Read immediately on mount
-  readExcel();
-  // Set interval to read every minute (60,000 ms)
-  const intervalId = setInterval(readExcel, 60000);
+  readExcel(); // Initial read
+  const intervalId = setInterval(readExcel, 60000); // Refresh every minute
 
-  // Store intervalId in a ref or cleanup on unmount
+  // Cleanup interval on unmount
   onUnmounted(() => {
     clearInterval(intervalId);
   });

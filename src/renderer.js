@@ -9,7 +9,7 @@ import '@mdi/font/css/materialdesignicons.css'; // Import Material Design Icons
 // Create Vuetify instance
 const vuetify = createVuetify({
   theme: {
-    defaultTheme: 'dark'
+    defaultTheme: 'light'
   },
   components,
   directives,
