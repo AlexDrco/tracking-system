@@ -1,16 +1,16 @@
 <template>
-  <v-card>
-    <v-row class="departure-row" no-gutters>
+  <v-card color="transparent" variant="flat">
+    <v-row no-gutters>
       <v-col cols="3" class="d-flex justify-center align-center">
         <TimeComponent :time="time" />
       </v-col>
       <v-col cols="3" class="d-flex justify-center align-center">
         <DestinationComponent :destination="destination" />
       </v-col>
-      <v-col cols="3" class="d-flex justify-center align-center">
+      <v-col cols="2" class="d-flex justify-center align-center">
         <GateComponent :gate="gate" />
       </v-col>
-      <v-col cols="3" class="d-flex justify-center align-center">
+      <v-col cols="4" class="d-flex justify-center align-center">
         <StatusComponent :status="status" />
       </v-col>
     </v-row>
