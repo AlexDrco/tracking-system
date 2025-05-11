@@ -1,10 +1,15 @@
 <template>
   <v-app>
     <v-app-bar elevation="0">
-      <v-app-bar-title class="text-h2 font-weight-bold text-center text-secondary">CWS BATCH TRACKER</v-app-bar-title>
+      <v-app-bar-title class="text-h2 font-weight-bold text-center text-secondary">
+        <div class="d-flex align-center justify-center">
+          <span>CWS BATCH TRACKER</span>
+          <span class="text-h5 ml-4">{{ currentTime }}</span>
+        </div>
+      </v-app-bar-title>
     </v-app-bar>
     <v-main class="h-100">
-      <VerticalCaroussel :excel-data="excelData" />
+      <VerticalCaroussel :excel-data="excelData" :current-time="currentTime" />
     </v-main>
   </v-app>
 </template>
@@ -14,15 +19,25 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import VerticalCaroussel from './components/VerticalCaroussel.vue';
 import DepartureRow from './components/DepartureRow.vue';
 
-
 const excelData = ref([]);
+const currentTime = ref('');
+
+// Function to update the current time
+const updateTime = () => {
+  const now = new Date();
+  currentTime.value = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).replace(/ /g, '');
+};
 
 // Function to read Excel file
 const readExcel = async () => {
   try {
     const result = await window.electronAPI.readExcel();
     if (result.success) {
-      excelData.value = result.data.sort((a, b) => new Date(a.time) - new Date(b.time)); // Sort by time
+      excelData.value = result.data.sort((a, b) => {
+        const [aHours, aMinutes] = a.time.split(':').map(Number);
+        const [bHours, bMinutes] = b.time.split(':').map(Number);
+        return aHours * 60 + aMinutes - (bHours * 60 + bMinutes);
+      }); // Sort by time
     } else {
       console.error('Error:', result.error);
     }
@@ -34,11 +49,14 @@ const readExcel = async () => {
 // Read Excel and update periodically
 onMounted(() => {
   readExcel(); // Initial read
-  const intervalId = setInterval(readExcel, 60000); // Refresh every minute
+  updateTime(); // Initial time update
+  const excelIntervalId = setInterval(readExcel, 60000); // Refresh Excel data every minute
+  const timeIntervalId = setInterval(updateTime, 1000); // Update time every second
 
-  // Cleanup interval on unmount
+  // Cleanup intervals on unmount
   onUnmounted(() => {
-    clearInterval(intervalId);
+    clearInterval(excelIntervalId);
+    clearInterval(timeIntervalId);
   });
 });
 </script>

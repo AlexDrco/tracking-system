@@ -1,21 +1,44 @@
 <template>
     <v-container fluid class="h-100">
-        <DepartureRow time="TIME" lotNumber="LOT NUM" camera="CAM" status="STATUS" />
-        <v-divider thickness="5" class="my-5"></v-divider>
-        <!-- Vertical v-slide-group for scrolling rows -->
-        <v-slide-group v-model="currentWindow" direction="vertical" style="height: 85%">
-            <v-slide-group-item v-for="(item, index) in visibleItems" :key="index">
-                <v-card style="height: 85%" color="transparent" variant="text" class="d-flex align-center">
-                    <DepartureRow :time="item.time" :lotNumber="item.lot_number" :camera="item.camera"
-                        :status="item.status" />
-                </v-card>
-            </v-slide-group-item>
-        </v-slide-group>
+        <v-sheet>
+            <DepartureRow time="TIME" lotNumber="LOT NUM" camera="CAM" status="STATUS" />
+            <v-divider thickness="5" class="my-5"></v-divider>
+        </v-sheet>
+        <v-sheet height="85vh" max-height="75vh">
+            <!-- Vertical v-slide-group for scrolling rows -->
+            <v-slide-group v-model="currentWindow" direction="vertical" center-active>
+                <template v-slot:next>
+                    <div></div>
+                </template>
+                <template v-slot:prev>
+                    <div></div>
+                </template>
+                <v-slide-group-item v-for="(item, index) in excelData" :key="index" v-slot="{ isSelected, toggle }">
+                    <v-card
+                        color="transparent"
+                        variant="text"
+                        @click="toggle"
+                        :class="[
+                            isSelected ? ['bg-blue', 'bg-opacity-50', 'scale-110'] : withinNext30Minutes(item.time) ? ['bg-orange', 'bg-opacity-50'] : 'opacity-50',
+                            'ma-2',
+                            'transition'
+                        ]"
+                    >
+                        <DepartureRow
+                            :time="item.time"
+                            :lotNumber="item.lot_number"
+                            :camera="item.camera"
+                            :status="item.status"
+                        />
+                    </v-card>
+                </v-slide-group-item>
+            </v-slide-group>
+        </v-sheet>
     </v-container>
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import DepartureRow from './DepartureRow.vue';
 
 const props = defineProps({
@@ -24,47 +47,74 @@ const props = defineProps({
         required: true,
         default: () => [],
     },
+    currentTime: {
+        type: String,
+        required: true,
+        default: '',
+    },
 });
 
 const currentWindow = ref(0); // Tracks the current center item index
 
-// Compute visible items (5 items: 2 above, 1 center, 2 below)
-const visibleItems = computed(() => {
-    const totalItems = props.excelData.length;
-    if (totalItems < 5) return props.excelData; // Return all if less than 5 items
+// Check if an item's time is within the next 30 minutes
+const withinNext30Minutes = (itemTime) => {
+    if (!props.currentTime || !itemTime) return false;
 
-    const centerIndex = currentWindow.value;
-    const startIndex = Math.max(0, centerIndex - 2); // 2 items before
-    return props.excelData.slice(startIndex, startIndex + 5); // 5 items total
-});
+    // Extract HH:MM from currentTime (HH:MM:SS)
+    const timeParts = props.currentTime.split(':');
+    const currentTimeWithoutSeconds = `${timeParts[0]}:${timeParts[1]}`; // e.g., "14:30"
 
-// Determine if the item is the center one (for focusing)
-const isCenterItem = (index) => index === 2; // Center item is at index 2 of visibleItems
+    // Convert current time (HH:MM) to minutes
+    const [currentHours, currentMinutes] = currentTimeWithoutSeconds.split(':').map(Number);
+    const currentTotalMinutes = currentHours * 60 + currentMinutes;
+
+    // Convert item.time (HH:MM) to minutes
+    const [itemHours, itemMinutes] = itemTime.split(':').map(Number);
+    const itemTotalMinutes = itemHours * 60 + itemMinutes;
+
+    // Check if item time is within the next 30 minutes
+    const diff = itemTotalMinutes - currentTotalMinutes;
+    return diff > 0 && diff <= 1; // Future time within 30 minutes
+};
 
 // Update current window based on current time
 const updateCurrentWindow = () => {
-    const now = new Date();
+    if (!props.currentTime || props.excelData.length === 0) return;
+
+    // Extract HH:MM from currentTime (HH:MM:SS)
+    const timeParts = props.currentTime.split(':');
+    const timeWithoutSeconds = `${timeParts[0]}:${timeParts[1]}`; // e.g., "14:30"
+
     let closestIndex = 0;
     let minDiff = Infinity;
 
     props.excelData.forEach((item, index) => {
-        const itemTime = new Date(item.time);
-        const diff = Math.abs(now - itemTime);
+        // Convert item.time (HH:MM) to minutes for comparison
+        const [itemHours, itemMinutes] = item.time.split(':').map(Number);
+        const itemTotalMinutes = itemHours * 60 + itemMinutes;
+
+        // Convert timeWithoutSeconds (HH:MM) to minutes
+        const [currentHours, currentMinutes] = timeWithoutSeconds.split(':').map(Number);
+        const currentTotalMinutes = currentHours * 60 + currentMinutes;
+
+        // Calculate absolute difference in minutes
+        const diff = Math.abs(currentTotalMinutes - itemTotalMinutes);
+
         if (diff < minDiff) {
             minDiff = diff;
             closestIndex = index;
         }
     });
 
-    // Set the closest item as the center (adjust for visibleItems)
-    currentWindow.value = Math.max(2, closestIndex);
+    // Set the closest item as the selected item
+    currentWindow.value = closestIndex;
 };
 
-// Watch for changes in excelData and update window
+// Watch for changes in excelData or currentTime and update window
 watch(
-    () => props.excelData,
+    [() => props.excelData, () => props.currentTime],
     () => {
-        if (props.excelData.length > 0) {
+        if (props.excelData.length > 0 && props.currentTime) {
             updateCurrentWindow();
         }
     },
@@ -73,7 +123,7 @@ watch(
 
 // Initial update on mount
 onMounted(() => {
-    if (props.excelData.length > 0) {
+    if (props.excelData.length > 0 && props.currentTime) {
         updateCurrentWindow();
     }
 });
