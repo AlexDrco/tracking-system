@@ -1,7 +1,7 @@
 <template>
     <v-container fluid class="h-100">
         <v-sheet>
-            <DepartureRow time="TIME" lotNumber="LOT NUM" camera="CAM" status="STATUS"/>
+            <DepartureRow time="TIME" lotNumber="LOT NUM" camera="CWS" status="STATUS"/>
             <v-divider thickness="5" class="my-5"></v-divider>
         </v-sheet>
         <v-sheet height="85vh" max-height="75vh">
