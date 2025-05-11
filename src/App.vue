@@ -2,11 +2,12 @@
   <v-app>
     <v-app-bar elevation="0">
       <v-app-bar-title class="text-h2 font-weight-bold text-center text-secondary">
-        <div class="d-flex align-center justify-center">
+        <div class="d-flex align-center justify-center" color="">
           <span>CWS BATCH TRACKER</span>
-          <span class="text-h5 ml-4">{{ currentTime }}</span>
         </div>
       </v-app-bar-title>
+                <span class="text-h4 text-cyan">{{ currentTime }}</span>
+
     </v-app-bar>
     <v-main class="h-100">
       <VerticalCaroussel :excel-data="excelData" :current-time="currentTime" />

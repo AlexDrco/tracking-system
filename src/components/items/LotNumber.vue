@@ -5,6 +5,7 @@
       :key="'dest-' + index"
       :character="char"
       class="text-mono text-cyan ma-1"
+      special="text-h2"
     />
   </v-sheet>
 </template>

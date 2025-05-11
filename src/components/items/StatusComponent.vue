@@ -6,6 +6,7 @@
       :character="char"
       class="text-mono ma-1"
       :class="statusClass(status)"
+      special="text-h3"
     />
   </v-sheet>
 </template>
@@ -22,9 +23,9 @@ defineProps({
 
 const statusClass = (status) => {
   const upperStatus = status.toUpperCase();
-  if (upperStatus === 'ON TIME') return 'text-cyan';
-  if (['BOARDING', 'GATE OPEN'].includes(upperStatus)) return 'text-green';
-  if (upperStatus === 'CANCELLED') return 'text-red';
+  if (upperStatus === 'COMPLETE') return 'text-cyan';
+  if (['COMPLETE', 'PREPARE'].includes(upperStatus)) return 'text-green';
+  if (upperStatus === 'WAITING') return 'text-red';
   return 'text-cyan'; // Default
 };
 </script>

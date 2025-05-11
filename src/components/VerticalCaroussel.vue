@@ -1,7 +1,7 @@
 <template>
     <v-container fluid class="h-100">
         <v-sheet>
-            <DepartureRow time="TIME" lotNumber="LOT NUM" camera="CAM" status="STATUS" />
+            <DepartureRow time="TIME" lotNumber="LOT NUM" camera="CAM" status="STATUS"/>
             <v-divider thickness="5" class="my-5"></v-divider>
         </v-sheet>
         <v-sheet height="85vh" max-height="75vh">
@@ -28,7 +28,7 @@
                             :time="item.time"
                             :lotNumber="item.lot_number"
                             :camera="item.camera"
-                            :status="item.status"
+                            :status="getItemStatus(item.time, isSelected)"
                         />
                     </v-card>
                 </v-slide-group-item>
@@ -74,7 +74,36 @@ const withinNext30Minutes = (itemTime) => {
 
     // Check if item time is within the next 30 minutes
     const diff = itemTotalMinutes - currentTotalMinutes;
-    return diff > 0 && diff <= 1; // Future time within 30 minutes
+    return diff > 0 && diff <= 30; // Future time within 30 minutes
+};
+
+// Determine the status of an item based on its time
+const getItemStatus = (itemTime, isSelected) => {
+    if (!props.currentTime || !itemTime) return 'Waiting';
+
+    // Extract HH:MM from currentTime (HH:MM:SS)
+    const timeParts = props.currentTime.split(':');
+    const currentTimeWithoutSeconds = `${timeParts[0]}:${timeParts[1]}`; // e.g., "14:30"
+
+    // Convert current time (HH:MM) to minutes
+    const [currentHours, currentMinutes] = currentTimeWithoutSeconds.split(':').map(Number);
+    const currentTotalMinutes = currentHours * 60 + currentMinutes;
+
+    // Convert item.time (HH:MM) to minutes
+    const [itemHours, itemMinutes] = itemTime.split(':').map(Number);
+    const itemTotalMinutes = itemHours * 60 + itemMinutes;
+
+    // Determine status
+    const diff = itemTotalMinutes - currentTotalMinutes;
+    if (diff < 0) {
+        return 'COMPLETE'; // Time has passed
+    } else if (isSelected) {
+        return 'PROCESS'; // Closest time (selected item)
+    } else if (diff > 0 && diff <= 30) {
+        return 'PREPARE'; // Within next 30 minutes
+    } else {
+        return 'WAITING'; // More than 30 minutes in the future
+    }
 };
 
 // Update current window based on current time
