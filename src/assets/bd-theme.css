@@ -1,0 +1,132 @@
+/* BD Theme Colors */
+:root {
+  --bd-primary: #004b87;    /* BD Primary Blue */
+  --bd-secondary: #0082ca;  /* BD Secondary Blue */
+  --bd-accent: #00a9e0;     /* BD Accent Blue */
+  --bd-success: #00af3f;    /* BD Green */
+  --bd-warning: #ffc72c;    /* BD Yellow */
+  --bd-error: #e31837;      /* BD Red */
+  --bd-dark: #1a1a1a;       /* Dark Background */
+  --bd-light: #f5f5f5;      /* Light Background */
+  --bd-gray: #6c757d;       /* Gray Text */
+  
+  /* Glow Effects */
+  --glow-primary: 0 0 10px rgba(0, 75, 135, 0.7);
+  --glow-secondary: 0 0 10px rgba(0, 130, 202, 0.7);
+  --glow-accent: 0 0 10px rgba(0, 169, 224, 0.7);
+  --glow-success: 0 0 10px rgba(0, 175, 63, 0.7);
+  --glow-warning: 0 0 10px rgba(255, 199, 44, 0.7);
+  --glow-error: 0 0 10px rgba(227, 24, 55, 0.7);
+}
+
+/* BD Typography */
+.bd-title {
+  font-size: 2rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.05em !important;
+  text-shadow: var(--glow-primary);
+}
+
+.bd-subtitle {
+  font-size: 1.5rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.03em !important;
+}
+
+.bd-value {
+  font-size: 2rem !important;
+  font-weight: 700 !important;
+  text-shadow: var(--glow-accent);
+}
+
+.bd-label {
+  font-size: 1.2rem !important;
+  font-weight: 500 !important;
+  opacity: 0.9;
+}
+
+/* BD Components */
+.bd-card {
+  background-color: rgba(26, 26, 26, 0.7) !important;
+  border: 1px solid var(--bd-accent) !important;
+  border-radius: 8px !important;
+}
+
+.bd-header {
+  background-color: var(--bd-primary) !important;
+  color: white !important;
+}
+
+/* Status Colors */
+.status-in-process {
+  color: var(--bd-success) !important;
+  text-shadow: var(--glow-success);
+  animation: blink-status 2s infinite;
+}
+
+.status-complete {
+  color: var(--bd-success) !important;
+  text-shadow: var(--glow-success);
+}
+
+.status-pending {
+  color: var(--bd-warning) !important;
+  text-shadow: var(--glow-warning);
+}
+
+.status-cancelled {
+  color: var(--bd-error) !important;
+  text-shadow: var(--glow-error);
+}
+
+@keyframes blink-status {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+/* Tech Background */
+.bd-tech-background {
+  background-color: var(--bd-dark);
+  background-image: 
+    linear-gradient(rgba(0, 75, 135, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 75, 135, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Character Sheet */
+.bd-character {
+  background-color: rgba(0, 75, 135, 0.1) !important;
+  border: 1px solid var(--bd-accent) !important;
+  border-radius: 4px !important;
+  padding: 8px !important;
+  min-width: 40px !important;
+  text-align: center !important;
+}
+
+/* Current Row Highlight */
+.current-row {
+  background: linear-gradient(90deg, rgba(0, 169, 224, 0.05) 0%, rgba(0, 169, 224, 0.2) 50%, rgba(0, 169, 224, 0.05) 100%) !important;
+  border-left: 4px solid var(--bd-accent) !important;
+  box-shadow: 0 0 15px rgba(0, 169, 224, 0.3) !important;
+  position: relative;
+  z-index: 1;
+}
+
+.current-row::before {
+  content: '→';
+  position: absolute;
+  left: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--bd-accent);
+  font-size: 1.5rem;
+  text-shadow: var(--glow-accent);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.5; }
+  50% { opacity: 1; }
+  100% { opacity: 0.5; }
+}

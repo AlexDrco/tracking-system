@@ -1,5 +1,5 @@
 <template>
-  <v-sheet class="border-lg d-inline-flex pa-3 text-h4" rounded>
+  <v-sheet class="bd-character d-inline-flex text-h4" rounded>
     {{ character }}
   </v-sheet>
 </template>
