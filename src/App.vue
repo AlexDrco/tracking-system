@@ -5,7 +5,7 @@
         </v-app-bar>
         <v-main>
             <v-container fluid class="pa-0 h-100">
-                <DepartureRow time="TIME" destination="LOT NUM" gate="CAM" status="STATUS" />
+                <DepartureRow time="TIME" destination="LOT NUM" gate="CWS" status="STATUS" />
                 <v-divider thickness="5" class="my-5"></v-divider>
 
 
