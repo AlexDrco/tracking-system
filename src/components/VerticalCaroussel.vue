@@ -16,10 +16,10 @@
                 <v-slide-group-item v-for="(item, index) in excelData" :key="index" v-slot="{ isSelected, toggle }">
                     <v-card
                         color="transparent"
-                        variant="text"
+                        :variant="isSelected ? 'outlined' : 'text'"
                         @click="toggle"
                         :class="[
-                            isSelected ? ['bg-blue', 'bg-opacity-50', 'scale-110'] : withinNext30Minutes(item.time) ? ['bg-orange', 'bg-opacity-50'] : 'opacity-50',
+                            isSelected ? ['bg-blue', 'bg-opacity-50'] : withinNext30Minutes(item.time) ? ['bg-orange', 'bg-opacity-50'] : 'opacity-50',
                             'ma-2',
                             'transition'
                         ]"
@@ -74,7 +74,7 @@ const withinNext30Minutes = (itemTime) => {
 
     // Check if item time is within the next 30 minutes
     const diff = itemTotalMinutes - currentTotalMinutes;
-    return diff > 0 && diff <= 30; // Future time within 30 minutes
+    return diff > 0 && diff <= 1; // Future time within 30 minutes
 };
 
 // Determine the status of an item based on its time
@@ -98,8 +98,8 @@ const getItemStatus = (itemTime, isSelected) => {
     if (diff < 0) {
         return 'COMPLETE'; // Time has passed
     } else if (isSelected) {
-        return 'PROCESS'; // Closest time (selected item)
-    } else if (diff > 0 && diff <= 30) {
+        return 'RUNNING'; // Closest time (selected item)
+    } else if (diff > 0 && diff <= 1) {
         return 'PREPARE'; // Within next 30 minutes
     } else {
         return 'WAITING'; // More than 30 minutes in the future
