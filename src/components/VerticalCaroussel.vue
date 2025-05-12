@@ -19,7 +19,7 @@
                         :variant="isSelected ? 'outlined' : 'text'"
                         @click="toggle"
                         :class="[
-                            isCurrentTime(item.time) ? ['bg-blue', 'bg-opacity-50'] : withinNext30Minutes(item.time) ? ['bg-orange', 'bg-opacity-50'] : 'opacity-50',
+                            withinNext30Minutes(item.time) ? ['bg-orange', 'bg-opacity-50'] : isCurrentTime(item.time) ? ['bg-blue', 'bg-opacity-50'] : 'opacity-50',
                             'ma-2',
                             'transition'
                         ]"
@@ -28,7 +28,7 @@
                             :time="item.time"
                             :lotNumber="item.lot_number"
                             :camera="item.camera"
-                            :status="getItemStatus(item.time, isCurrentTime(item.time))"
+                            :status="getItemStatus(item.time)"
                         />
                     </v-card>
                 </v-slide-group-item>
@@ -54,27 +54,45 @@ const props = defineProps({
     },
 });
 
+const timeRunning = 4; // Time window for "RUNNING" status (in minutes)
+const timeToPrepare = 3; // Time window for "PREPARE" status (in minutes)
+
 const currentWindow = ref(0); // Tracks the current center item index
 
-// Check if an item's time matches the current time
 const isCurrentTime = (itemTime) => {
     if (!props.currentTime || !itemTime) return false;
 
     // Extract HH:MM from currentTime (HH:MM:SS)
     const timeParts = props.currentTime.split(':');
-    const currentTimeWithoutSeconds = `${timeParts[0]}:${timeParts[1]}`; // e.g., "14:30"
+    const currentTimeWithoutSeconds = `${timeParts[0]}:${timeParts[1]}`; // e.g., "18:27"
 
-    // Compare directly
-    return itemTime === currentTimeWithoutSeconds;
+    // Convert current time (HH:MM) to minutes
+    const [currentHours, currentMinutes] = currentTimeWithoutSeconds.split(':').map(Number);
+    const currentTotalMinutes = currentHours * 60 + currentMinutes;
+
+    // Convert item.time (HH:MM) to minutes
+    const [itemHours, itemMinutes] = itemTime.split(':').map(Number);
+    const itemTotalMinutes = itemHours * 60 + itemMinutes;
+
+    // Step 1: Has the item's time happened? (currentTime >= item.time)
+    const diff = itemTotalMinutes - currentTotalMinutes;
+    const hasTimeHappened = diff <= 0;
+
+    // Step 2: Is it within timeRunning? (within 4 minutes after item.time)
+    const isWithinTimeRunning = diff >= -timeRunning;
+
+    // Step 3: Return true only if both conditions are true
+    console.log(`isCurrentTime: itemTime=${itemTime}, currentTime=${currentTimeWithoutSeconds}, diff=${diff}, hasTimeHappened=${hasTimeHappened}, isWithinTimeRunning=${isWithinTimeRunning}, result=${hasTimeHappened && isWithinTimeRunning}`);
+    return hasTimeHappened && isWithinTimeRunning;
 };
 
-// Check if an item's time is within the next 30 minutes
+// Check if an item's time is in the future and within timeToPrepare
 const withinNext30Minutes = (itemTime) => {
     if (!props.currentTime || !itemTime) return false;
 
     // Extract HH:MM from currentTime (HH:MM:SS)
     const timeParts = props.currentTime.split(':');
-    const currentTimeWithoutSeconds = `${timeParts[0]}:${timeParts[1]}`; // e.g., "14:30"
+    const currentTimeWithoutSeconds = `${timeParts[0]}:${timeParts[1]}`; // e.g., "18:19"
 
     // Convert current time (HH:MM) to minutes
     const [currentHours, currentMinutes] = currentTimeWithoutSeconds.split(':').map(Number);
@@ -84,18 +102,18 @@ const withinNext30Minutes = (itemTime) => {
     const [itemHours, itemMinutes] = itemTime.split(':').map(Number);
     const itemTotalMinutes = itemHours * 60 + itemMinutes;
 
-    // Check if item time is within the next 30 minutes
+    // Check if item time is in the future and within timeToPrepare
     const diff = itemTotalMinutes - currentTotalMinutes;
-    return diff > 0 && diff <= 1; // Future time within 30 minutes (corrected to 30 minutes)
+    return diff > 0 && diff <= timeToPrepare; // Future time within timeToPrepare
 };
 
 // Determine the status of an item based on its time
-const getItemStatus = (itemTime, isCurrent) => {
+const getItemStatus = (itemTime) => {
     if (!props.currentTime || !itemTime) return 'WAITING';
 
     // Extract HH:MM from currentTime (HH:MM:SS)
     const timeParts = props.currentTime.split(':');
-    const currentTimeWithoutSeconds = `${timeParts[0]}:${timeParts[1]}`; // e.g., "14:30"
+    const currentTimeWithoutSeconds = `${timeParts[0]}:${timeParts[1]}`; // e.g., "18:27"
 
     // Convert current time (HH:MM) to minutes
     const [currentHours, currentMinutes] = currentTimeWithoutSeconds.split(':').map(Number);
@@ -105,16 +123,23 @@ const getItemStatus = (itemTime, isCurrent) => {
     const [itemHours, itemMinutes] = itemTime.split(':').map(Number);
     const itemTotalMinutes = itemHours * 60 + itemMinutes;
 
-    // Determine status
+    // Step 1: Has the item's time happened? (currentTime >= item.time)
     const diff = itemTotalMinutes - currentTotalMinutes;
-    if (diff < 0) {
-        return 'COMPLETE'; // Time has passed
-    } else if (isCurrent) {
-        return 'RUNNING'; // Current time
-    } else if (diff > 0 && diff <= 30) {
-        return 'PREPARE'; // Within next 30 minutes
+    const hasTimeHappened = diff <= 0;
+
+    // Step 2: Is it within timeRunning? (within 4 minutes after item.time)
+    const isWithinTimeRunning = diff >= -timeRunning;
+
+    // Step 3: Determine status
+    console.log(`getItemStatus: itemTime=${itemTime}, currentTime=${currentTimeWithoutSeconds}, diff=${diff}, hasTimeHappened=${hasTimeHappened}, isWithinTimeRunning=${isWithinTimeRunning}`);
+    if (hasTimeHappened && isWithinTimeRunning) {
+        return 'RUNNING'; // Time reached and within timeRunning
+    } else if (diff > 0 && diff <= timeToPrepare) {
+        return 'PREPARE'; // Future time within timeToPrepare
+    } else if (diff < -timeRunning) {
+        return 'COMPLETE'; // Time has passed beyond timeRunning
     } else {
-        return 'WAITING'; // More than 30 minutes in the future
+        return 'WAITING'; // Beyond timeToPrepare
     }
 };
 
@@ -124,9 +149,9 @@ const updateCurrentWindow = () => {
 
     // Extract HH:MM from currentTime (HH:MM:SS)
     const timeParts = props.currentTime.split(':');
-    const timeWithoutSeconds = `${timeParts[0]}:${timeParts[1]}`; // e.g., "14:30"
+    const timeWithoutSeconds = `${timeParts[0]}:${timeParts[1]}`; // e.g., "18:19"
 
-    // Find all active items (matching current time)
+    // Find all active items (time reached and within timeRunning)
     const activeIndices = [];
     props.excelData.forEach((item, index) => {
         if (isCurrentTime(item.time)) {
